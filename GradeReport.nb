@@ -1,0 +1,1329 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     53846,       1320]
+NotebookOptionsPosition[     53529,       1304]
+NotebookOutlinePosition[     53868,       1319]
+CellTagsIndexPosition[     53825,       1316]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"GradeReport", ".", "nb"}], " ", "revision", " ", 
+     RowBox[{
+      RowBox[{"29", "/", "9"}], "/", "2016."}], " ", "Written", " ", "and", 
+     " ", "maintained", " ", "by", " ", "Charles", " ", "Hussong", " ", 
+     RowBox[{
+      RowBox[{"chussong", "@", "jhu"}], ".", "edu", ".", " ", "Find"}], " ", 
+     "most", " ", "recent", " ", "version", " ", "at", " ", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"github", ".", "com"}], "/", "chussong"}], "/", "teaching"}]}],
+     "-", 
+    RowBox[{"tools", "/"}]}], "*)"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{
+    "Takes", " ", "grade", " ", "data", " ", "in", " ", "a", " ", 
+     "spreadsheet", " ", "and", " ", "outputs", " ", "histograms", " ", "of", 
+     " ", 
+     RowBox[{"students", "'"}], " ", "performance", " ", "on", " ", "each", 
+     " ", "problem", " ", "and", " ", "on", " ", "the", " ", "overall", " ", 
+     RowBox[{"exam", ".", " ", "Expected"}], " ", "data", " ", "format", " ", 
+     
+     RowBox[{"is", ":", " ", 
+      RowBox[{
+      "names", " ", "in", " ", "first", " ", "two", " ", "columns"}]}]}], ",",
+     " ", 
+    RowBox[{"then", " ", "each", " ", 
+     RowBox[{"student", "'"}], "s", " ", "section", " ", "number", " ", "in", 
+     " ", "third", " ", "column"}], ",", " ", 
+    RowBox[{"then", " ", 
+     RowBox[{"problem", "'"}], "s", " ", "score", " ", "in", " ", 
+     "subsequent", " ", "columns"}], ",", " ", 
+    RowBox[{
+    "followed", " ", "by", " ", "a", " ", "column", " ", "of", " ", "the", 
+     " ", 
+     RowBox[{"totals", ".", " ", "The"}], " ", "top", " ", "row", " ", "is", 
+     " ", "expected", " ", "to", " ", "be", " ", "used", " ", "for", " ", 
+     "column", " ", "labels", " ", "and", " ", "is", " ", "not", " ", 
+     RowBox[{"read", "."}]}]}], "*)"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+   "Students", " ", "whose", " ", "problem", " ", "scores", " ", "are", " ", 
+    "all", " ", "blank", " ", "will", " ", "be", " ", "treated", " ", "as", 
+    " ", "bad", " ", "data", " ", "and", " ", "removed", " ", "irrespective", 
+    " ", "of", " ", "their", " ", "score", " ", "in", " ", "the", " ", 
+    "\"\<total\>\"", " ", 
+    RowBox[{"column", ".", " ", "No"}], " ", "other", " ", "data", " ", 
+    "alterations", " ", "are", " ", 
+    RowBox[{"made", "."}]}], "*)"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"ClearAll", "[", "\"\<Global`*\>\"", "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"students", "=", "170"}], ";", " ", 
+    RowBox[{"(*", 
+     RowBox[{
+      RowBox[{
+      "number", " ", "of", " ", "students", " ", "with", " ", "rows"}], ",", 
+      " ", 
+      RowBox[{"including", " ", "blank", " ", "rows"}]}], "*)"}], 
+    "\[IndentingNewLine]", 
+    RowBox[{"maxpoints", "=", 
+     RowBox[{"{", 
+      RowBox[{"33", ",", "33", ",", "34"}], "}"}]}], ";", "  ", 
+    RowBox[{"(*", 
+     RowBox[{
+     "maximum", " ", "points", " ", "for", " ", "each", " ", "problem"}], 
+     "*)"}], "\[IndentingNewLine]", 
+    RowBox[{"totalBinSize", "=", "5"}], ";", " ", 
+    RowBox[{"(*", 
+     RowBox[{
+      RowBox[{"bin", " ", "size", " ", "for", " ", "total"}], "-", 
+      RowBox[{"score", " ", "histogram"}]}], "*)"}], "\[IndentingNewLine]", 
+    RowBox[{"dataname", "=", "\"\<dangrades.csv\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"exportName", "=", "\"\<danreport.pdf\>\""}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+    "SetDirectory", "[", "\"\<~/Dropbox/Classes/171.102/1617F/Data\>\"", 
+     "]"}], ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"--", 
+     RowBox[{"--", 
+      RowBox[{"--", 
+       RowBox[{"--", 
+        RowBox[{"--", 
+         RowBox[{"--", 
+          RowBox[{"--", 
+           RowBox[{"--", 
+            RowBox[{"--", 
+             RowBox[{"--", 
+              RowBox[{"--", 
+               RowBox[{"--", 
+                RowBox[{"--", 
+                 RowBox[{"--", 
+                  RowBox[{"--", 
+                   RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{"--", 
+                    RowBox[{
+                    "--", "--"}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]}]\
+}]}]}]}]}]}]}]}]}]}]}]}], "*)"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"Data", " ", "reading", " ", "and", " ", "cleanup"}], "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"problems", "=", 
+     RowBox[{"Length", "@", "maxpoints"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"maxpoints", "=", 
+     RowBox[{
+      RowBox[{"Append", "[", 
+       RowBox[{"Total", "@", "maxpoints"}], "]"}], "@", "maxpoints"}]}], 
+    ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"blankCondition", "=", 
+     RowBox[{"{", 
+      RowBox[{"_", ",", "_", ",", "_"}], "}"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", 
+     RowBox[{
+      RowBox[{"blankCondition", "=", 
+       RowBox[{
+        RowBox[{"Append", "[", "\"\<\>\"", "]"}], "@", "blankCondition"}]}], 
+      ",", "problems"}], "]"}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"blankCondition", "=", 
+     RowBox[{
+      RowBox[{"Append", "[", "_", "]"}], "@", "blankCondition"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"hist", "=", 
+     RowBox[{"ConstantArray", "[", 
+      RowBox[{"0", ",", 
+       RowBox[{"problems", "+", "1"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"data", "=", 
+     RowBox[{"Take", "[", 
+      RowBox[{
+       RowBox[{"Import", "[", 
+        RowBox[{"dataname", ",", "\"\<Data\>\""}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"2", ",", 
+         RowBox[{"students", "+", "1"}]}], "}"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"data", "[", 
+        RowBox[{"[", "i", "]"}], "]"}], "=", 
+       RowBox[{"Take", "[", 
+        RowBox[{
+         RowBox[{"data", "[", 
+          RowBox[{"[", "i", "]"}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"1", ",", 
+           RowBox[{"problems", "+", "4"}]}], "}"}]}], "]"}]}], ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", "1", ",", "students"}], "}"}]}], "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"students", "-=", 
+     RowBox[{"Length", "[", 
+      RowBox[{
+       RowBox[{"Cases", "[", "blankCondition", "]"}], "@", "data"}], "]"}]}], 
+    ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"data", "=", 
+     RowBox[{
+      RowBox[{"DeleteCases", "[", "blankCondition", "]"}], "@", "data"}]}], 
+    ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"Whole", "-", 
+     RowBox[{"class", " ", "analysis", " ", "and", " ", "visualization"}]}], 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"classMean", "=", 
+     RowBox[{"Mean", "@", 
+      RowBox[{"data", "[", 
+       RowBox[{"[", 
+        RowBox[{"All", ",", 
+         RowBox[{"problems", "+", "4"}]}], "]"}], "]"}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"classMean", "=", 
+     RowBox[{"N", "[", 
+      RowBox[{"classMean", ",", 
+       RowBox[{
+        RowBox[{"IntegerLength", "@", 
+         RowBox[{"Round", "@", "classMean"}]}], "+", "2"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"classStDev", "=", 
+     RowBox[{"StandardDeviation", "@", 
+      RowBox[{"data", "[", 
+       RowBox[{"[", 
+        RowBox[{"All", ",", 
+         RowBox[{"problems", "+", "4"}]}], "]"}], "]"}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"classStDev", "=", 
+     RowBox[{"N", "[", 
+      RowBox[{"classStDev", ",", 
+       RowBox[{
+        RowBox[{"IntegerLength", "@", 
+         RowBox[{"Round", "@", "classStDev"}]}], "+", "2"}]}], "]"}]}], ";"}],
+    "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"classMedian", "=", 
+     RowBox[{"Median", "@", 
+      RowBox[{"data", "[", 
+       RowBox[{"[", 
+        RowBox[{"All", ",", 
+         RowBox[{"problems", "+", "4"}]}], "]"}], "]"}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"maxCount", "=", 
+     RowBox[{"ConstantArray", "[", 
+      RowBox[{"0", ",", 
+       RowBox[{"problems", "+", "1"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{
+        RowBox[{"maxCount", "[", 
+         RowBox[{"[", "i", "]"}], "]"}], "=", 
+        RowBox[{"Max", "@", 
+         RowBox[{"BinCounts", "[", 
+          RowBox[{
+           RowBox[{"data", "[", 
+            RowBox[{"[", 
+             RowBox[{"All", ",", 
+              RowBox[{"3", "+", "i"}]}], "]"}], "]"}], ",", "1"}], "]"}]}]}], 
+       ";"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", "1", ",", "problems"}], "}"}]}], "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"maxCount", "[", 
+      RowBox[{"[", 
+       RowBox[{"problems", "+", "1"}], "]"}], "]"}], "=", 
+     RowBox[{"Max", "@", 
+      RowBox[{"BinCounts", "[", 
+       RowBox[{
+        RowBox[{"data", "[", 
+         RowBox[{"[", 
+          RowBox[{"All", ",", 
+           RowBox[{"4", "+", "problems"}]}], "]"}], "]"}], ",", 
+        "totalBinSize"}], "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"Do", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{
+      RowBox[{
+       RowBox[{"hist", "[", 
+        RowBox[{"[", "i", "]"}], "]"}], "=", 
+       RowBox[{"Histogram", "[", 
+        RowBox[{
+         RowBox[{"data", "[", 
+          RowBox[{"[", 
+           RowBox[{"All", ",", 
+            RowBox[{"3", "+", "i"}]}], "]"}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"0", ",", 
+           RowBox[{"maxpoints", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], ",", "1"}], "}"}], ",", 
+         RowBox[{"PlotLabel", "\[Rule]", 
+          RowBox[{"\"\<Problem \>\"", "<>", 
+           RowBox[{"ToString", "[", "i", "]"}], "<>", "\"\<; mean = \>\"", "<>", 
+           RowBox[{"ToString", "@", 
+            RowBox[{"N", "[", 
+             RowBox[{
+              RowBox[{"Mean", "@", 
+               RowBox[{"data", "[", 
+                RowBox[{"[", 
+                 RowBox[{"All", ",", 
+                  RowBox[{"3", "+", "i"}]}], "]"}], "]"}]}], ",", "4"}], 
+             "]"}]}]}]}], ",", 
+         RowBox[{"AxesOrigin", "\[Rule]", "0"}], ",", 
+         RowBox[{"PlotRange", "\[Rule]", 
+          RowBox[{"Max", "@", "maxCount"}]}]}], "]"}]}], ";"}], 
+     "\[IndentingNewLine]", ",", 
+     RowBox[{"{", 
+      RowBox[{"i", ",", "1", ",", "problems"}], "}"}]}], "]"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"totalEndpoint", "=", 
+     RowBox[{
+      RowBox[{"maxpoints", "[", 
+       RowBox[{"[", 
+        RowBox[{"problems", "+", "1"}], "]"}], "]"}], "-", 
+      RowBox[{"Mod", "[", 
+       RowBox[{
+        RowBox[{"maxpoints", "[", 
+         RowBox[{"[", 
+          RowBox[{"problems", "+", "1"}], "]"}], "]"}], ",", "totalBinSize"}],
+        "]"}]}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"hist", "[", 
+      RowBox[{"[", 
+       RowBox[{"problems", "+", "1"}], "]"}], "]"}], "=", 
+     RowBox[{"Histogram", "[", 
+      RowBox[{
+       RowBox[{"data", "[", 
+        RowBox[{"[", 
+         RowBox[{"All", ",", 
+          RowBox[{"problems", "+", "4"}]}], "]"}], "]"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"0", ",", "totalEndpoint", ",", "totalBinSize"}], "}"}], ",", 
+       
+       RowBox[{"PlotLabel", "\[Rule]", 
+        RowBox[{"\"\<Total; mean = \>\"", "<>", 
+         RowBox[{"ToString", "@", 
+          RowBox[{"N", "[", 
+           RowBox[{
+            RowBox[{"Mean", "@", 
+             RowBox[{"data", "[", 
+              RowBox[{"[", 
+               RowBox[{"All", ",", 
+                RowBox[{"4", " ", "+", " ", "problems"}]}], "]"}], "]"}]}], 
+            ",", "4"}], "]"}]}]}]}], ",", 
+       RowBox[{"AxesOrigin", "\[Rule]", "0"}], ",", 
+       RowBox[{"PlotRange", "\[Rule]", " ", 
+        RowBox[{"Max", "@", "maxCount"}]}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"columns", "=", 
+     RowBox[{"Ceiling", "@", 
+      RowBox[{"Sqrt", "@", 
+       RowBox[{"(", 
+        RowBox[{"problems", "+", "1"}], ")"}]}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"rows", "=", 
+     RowBox[{"Ceiling", "@", 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"problems", "+", "1"}], ")"}], "/", "columns"}], ")"}]}]}], 
+    ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"histGrid", "=", 
+     RowBox[{"ConstantArray", "[", 
+      RowBox[{"0", ",", 
+       RowBox[{"{", 
+        RowBox[{"rows", ",", "columns"}], "}"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"pos", "=", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", "1"}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Do", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{
+        RowBox[{"histGrid", "[", 
+         RowBox[{"[", 
+          RowBox[{
+           RowBox[{"pos", "[", 
+            RowBox[{"[", "1", "]"}], "]"}], ",", 
+           RowBox[{"pos", "[", 
+            RowBox[{"[", "2", "]"}], "]"}]}], "]"}], "]"}], "=", 
+        RowBox[{"hist", "[", 
+         RowBox[{"[", "i", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"pos", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], "++"}], ";", "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"pos", "[", 
+           RowBox[{"[", "2", "]"}], "]"}], ">", "columns"}], ",", 
+         "\[IndentingNewLine]", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"pos", "[", 
+            RowBox[{"[", "1", "]"}], "]"}], "++"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"pos", "[", 
+            RowBox[{"[", "2", "]"}], "]"}], "=", "1"}], ";"}]}], 
+        "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"i", ",", "1", ",", 
+        RowBox[{"problems", "+", "1"}]}], "}"}]}], "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Print", "[", 
+     RowBox[{"GraphicsGrid", "[", 
+      RowBox[{"histGrid", ",", 
+       RowBox[{"ImageSize", "\[Rule]", "Full"}]}], "]"}], "]"}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"Section", " ", "analysis", " ", "and", " ", "visualization"}], 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"highestSection", "=", 
+     RowBox[{"Max", "[", 
+      RowBox[{"data", "[", 
+       RowBox[{"[", 
+        RowBox[{"All", ",", "3"}], "]"}], "]"}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{"highestSection", ">", "0"}], ",", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"secData", "=", 
+        RowBox[{"Table", "[", 
+         RowBox[{
+          RowBox[{"{", "}"}], ",", "highestSection"}], "]"}]}], ";", 
+       RowBox[{"secHist", "=", 
+        RowBox[{"ConstantArray", "[", 
+         RowBox[{"0", ",", "highestSection"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"sectionMeans", "=", 
+        RowBox[{"ConstantArray", "[", 
+         RowBox[{"0", ",", "highestSection"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"sectionMaxCount", "=", 
+        RowBox[{"ConstantArray", "[", 
+         RowBox[{"0", ",", "highestSection"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"scoreVectors", "=", 
+        RowBox[{"data", "[", 
+         RowBox[{"[", 
+          RowBox[{"All", ",", 
+           RowBox[{"Range", "[", 
+            RowBox[{"3", ",", 
+             RowBox[{"problems", "+", "4"}]}], "]"}]}], "]"}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"Do", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{
+              RowBox[{"scoreVectors", "[", 
+               RowBox[{"[", "row", "]"}], "]"}], "[", 
+              RowBox[{"[", "1", "]"}], "]"}], ">", "0"}], ",", 
+            "\[IndentingNewLine]", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"secData", "[", 
+               RowBox[{"[", 
+                RowBox[{
+                 RowBox[{"scoreVectors", "[", 
+                  RowBox[{"[", "row", "]"}], "]"}], "[", 
+                 RowBox[{"[", "1", "]"}], "]"}], "]"}], "]"}], "=", 
+              RowBox[{"Append", "[", 
+               RowBox[{
+                RowBox[{"secData", "[", 
+                 RowBox[{"[", 
+                  RowBox[{
+                   RowBox[{"scoreVectors", "[", 
+                    RowBox[{"[", "row", "]"}], "]"}], "[", 
+                   RowBox[{"[", "1", "]"}], "]"}], "]"}], "]"}], ",", 
+                RowBox[{
+                 RowBox[{"scoreVectors", "[", 
+                  RowBox[{"[", "row", "]"}], "]"}], "[", 
+                 RowBox[{"[", 
+                  RowBox[{"Range", "[", 
+                   RowBox[{"2", ",", 
+                    RowBox[{"problems", "+", "2"}]}], "]"}], "]"}], "]"}]}], 
+               "]"}]}], ";"}]}], "\[IndentingNewLine]", "]"}], ";"}], 
+         "\[IndentingNewLine]", ",", 
+         RowBox[{"{", 
+          RowBox[{"row", ",", "1", ",", "students"}], "}"}]}], "]"}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"Do", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{
+           RowBox[{"sectionMaxCount", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], "=", 
+           RowBox[{"Max", "@", 
+            RowBox[{"BinCounts", "[", 
+             RowBox[{
+              RowBox[{
+               RowBox[{"secData", "[", 
+                RowBox[{"[", "i", "]"}], "]"}], "[", 
+               RowBox[{"[", 
+                RowBox[{"All", ",", 
+                 RowBox[{"problems", "+", "1"}]}], "]"}], "]"}], ",", 
+              "totalBinSize"}], "]"}]}]}], ";"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "highestSection"}], "}"}]}], "]"}], ";",
+        "\[IndentingNewLine]", 
+       RowBox[{"Do", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"sectionMaxCount", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], "\[Equal]", "0"}], ",", 
+            RowBox[{"Continue", "[", "]"}]}], "]"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"sectionMeans", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], "=", 
+           RowBox[{"Mean", "@", 
+            RowBox[{
+             RowBox[{"secData", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], "[", 
+             RowBox[{"[", 
+              RowBox[{"All", ",", 
+               RowBox[{"problems", "+", "1"}]}], "]"}], "]"}]}]}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"sectionMeans", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], "=", 
+           RowBox[{"N", "[", 
+            RowBox[{
+             RowBox[{"sectionMeans", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], ",", 
+             RowBox[{
+              RowBox[{"IntegerLength", "@", 
+               RowBox[{"Round", "@", 
+                RowBox[{"sectionMeans", "[", 
+                 RowBox[{"[", "i", "]"}], "]"}]}]}], "+", "2"}]}], "]"}]}], 
+          ";", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"secHist", "[", 
+            RowBox[{"[", "i", "]"}], "]"}], "=", 
+           RowBox[{"Histogram", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"secData", "[", 
+               RowBox[{"[", "i", "]"}], "]"}], "[", 
+              RowBox[{"[", 
+               RowBox[{"All", ",", 
+                RowBox[{"problems", "+", "1"}]}], "]"}], "]"}], ",", 
+             RowBox[{"{", 
+              RowBox[{"0", ",", "totalEndpoint", ",", "totalBinSize"}], "}"}],
+              ",", 
+             RowBox[{"PlotRange", "\[Rule]", 
+              RowBox[{"Max", "@", "sectionMaxCount"}]}], ",", 
+             RowBox[{"PlotLabel", "\[Rule]", " ", 
+              RowBox[{"\"\<Section \>\"", "<>", 
+               RowBox[{"ToString", "[", "i", "]"}], "<>", "\"\<; mean = \>\"",
+                "<>", 
+               RowBox[{"ToString", "[", 
+                RowBox[{"sectionMeans", "[", 
+                 RowBox[{"[", "i", "]"}], "]"}], "]"}]}]}]}], "]"}]}], ";"}], 
+         "\[IndentingNewLine]", ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "highestSection"}], "}"}]}], "]"}], ";",
+        "\[IndentingNewLine]", 
+       RowBox[{"secColumns", "=", 
+        RowBox[{"Ceiling", "@", 
+         RowBox[{"Sqrt", "@", 
+          RowBox[{"(", 
+           RowBox[{"highestSection", "-", 
+            RowBox[{"Count", "[", 
+             RowBox[{"sectionMaxCount", ",", "0"}], "]"}]}], ")"}]}]}]}], ";",
+        "\[IndentingNewLine]", 
+       RowBox[{"secRows", "=", 
+        RowBox[{"Ceiling", "@", 
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"highestSection", "-", 
+             RowBox[{"Count", "[", 
+              RowBox[{"sectionMaxCount", ",", "0"}], "]"}]}], ")"}], "/", 
+           "secColumns"}], ")"}]}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"secHistGrid", "=", 
+        RowBox[{"ConstantArray", "[", 
+         RowBox[{"\"\<\>\"", ",", 
+          RowBox[{"{", 
+           RowBox[{"secRows", ",", "secColumns"}], "}"}]}], "]"}]}], ";", 
+       "\[IndentingNewLine]", 
+       RowBox[{"pos", "=", 
+        RowBox[{"{", 
+         RowBox[{"1", ",", "1"}], "}"}]}], ";", "\[IndentingNewLine]", 
+       RowBox[{"Do", "[", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"sectionMaxCount", "[", 
+              RowBox[{"[", "i", "]"}], "]"}], "\[Equal]", "0"}], ",", 
+            RowBox[{"Continue", "[", "]"}]}], "]"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"secHistGrid", "[", 
+            RowBox[{"[", 
+             RowBox[{
+              RowBox[{"pos", "[", 
+               RowBox[{"[", "1", "]"}], "]"}], ",", 
+              RowBox[{"pos", "[", 
+               RowBox[{"[", "2", "]"}], "]"}]}], "]"}], "]"}], "=", 
+           RowBox[{"secHist", "[", 
+            RowBox[{"[", "i", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+          RowBox[{
+           RowBox[{"pos", "[", 
+            RowBox[{"[", "2", "]"}], "]"}], "++"}], ";", 
+          "\[IndentingNewLine]", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"pos", "[", 
+              RowBox[{"[", "2", "]"}], "]"}], ">", "secColumns"}], ",", 
+            "\[IndentingNewLine]", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"pos", "[", 
+               RowBox[{"[", "1", "]"}], "]"}], "++"}], ";", 
+             "\[IndentingNewLine]", 
+             RowBox[{
+              RowBox[{"pos", "[", 
+               RowBox[{"[", "2", "]"}], "]"}], "=", "1"}], ";"}]}], 
+           "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", ",", 
+         RowBox[{"{", 
+          RowBox[{"i", ",", "1", ",", "highestSection"}], "}"}]}], "]"}], ";",
+        "\[IndentingNewLine]", 
+       RowBox[{"Print", "[", 
+        RowBox[{"GraphicsGrid", "[", 
+         RowBox[{"secHistGrid", ",", 
+          RowBox[{"ImageSize", "\[Rule]", "Full"}]}], "]"}], "]"}], ";"}]}], 
+     "\[IndentingNewLine]", "]"}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"Create", " ", "and", " ", "export", " ", "PDF", " ", "report"}], 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"report", "=", 
+     RowBox[{"CreateDocument", "[", "]"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"SetOptions", "[", 
+     RowBox[{"report", ",", 
+      RowBox[{"PageHeaders", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"None", ",", "None", ",", "None"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"None", ",", "None", ",", "None"}], "}"}]}], "}"}]}], ",", 
+      RowBox[{"PageFooters", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"None", ",", "None", ",", "None"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"None", ",", "None", ",", "None"}], "}"}]}], "}"}]}], ",", 
+      RowBox[{"PrintingOptions", "\[Rule]", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"\"\<PaperOrientation\>\"", "\[Rule]", "\"\<Landscape\>\""}],
+          ",", 
+         RowBox[{"\"\<PrintingMargins\>\"", "\[Rule]", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{"20", ",", "20"}], "}"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"40", ",", "40"}], "}"}]}], "}"}]}]}], "}"}]}]}], "]"}], 
+    ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Paste", "[", 
+     RowBox[{"report", ",", 
+      RowBox[{"GraphicsGrid", "[", 
+       RowBox[{"histGrid", ",", 
+        RowBox[{"ImageSize", "\[Rule]", "Full"}]}], "]"}]}], "]"}], ";", 
+    RowBox[{"Paste", "[", 
+     RowBox[{"report", ",", 
+      RowBox[{"Framed", "[", 
+       RowBox[{"\"\<Additional statistics:\\t\\t St.Dev. = \>\"", "<>", 
+        RowBox[{"ToString", "@", "classStDev"}], "<>", 
+        "\"\<\\t\\t median = \>\"", "<>", 
+        RowBox[{"ToString", "@", 
+         RowBox[{"N", "[", "classMedian", "]"}]}]}], "]"}]}], "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{"highestSection", ">", "0"}], ",", 
+      RowBox[{"Paste", "[", 
+       RowBox[{"report", ",", 
+        RowBox[{"GraphicsGrid", "[", 
+         RowBox[{"secHistGrid", ",", 
+          RowBox[{"ImageSize", "\[Rule]", "Full"}]}], "]"}]}], "]"}]}], "]"}],
+     ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Export", "[", 
+     RowBox[{"exportName", ",", "report"}], "]"}], ";"}], "\n", 
+   RowBox[{
+    RowBox[{"NotebookClose", "[", "report", "]"}], ";"}]}]}]], "Input",
+ CellChangeTimes->{{3.640703717289564*^9, 3.640703748222719*^9}, {
+   3.640703811382202*^9, 3.6407038192251053`*^9}, {3.640704110869442*^9, 
+   3.640704120951096*^9}, 3.640952354004263*^9, {3.640952386614739*^9, 
+   3.6409524148307323`*^9}, {3.6409524518589783`*^9, 3.640952532967801*^9}, {
+   3.64095274737075*^9, 3.640952770823763*^9}, {3.640952843437166*^9, 
+   3.640952853194826*^9}, {3.640953337864292*^9, 3.640953424737432*^9}, {
+   3.640953468814652*^9, 3.640953638799581*^9}, {3.640953801183009*^9, 
+   3.640953956358156*^9}, {3.6409541910685043`*^9, 3.640954336053647*^9}, {
+   3.64095451043575*^9, 3.640954519756991*^9}, {3.6409545565905523`*^9, 
+   3.6409545583483257`*^9}, {3.640954622409596*^9, 3.640954668597253*^9}, {
+   3.6409547121152153`*^9, 3.6409547420538282`*^9}, {3.640954859262721*^9, 
+   3.640954867895823*^9}, {3.640955216060277*^9, 3.640955219063219*^9}, {
+   3.640955251120514*^9, 3.640955262745653*^9}, {3.64095530276896*^9, 
+   3.640955362853777*^9}, {3.6409554019816093`*^9, 3.64095543001637*^9}, {
+   3.640955533331362*^9, 3.640955535921096*^9}, {3.640955571388543*^9, 
+   3.6409555718942823`*^9}, {3.64095561124476*^9, 3.6409556114642982`*^9}, {
+   3.651774807057282*^9, 3.6517748894724197`*^9}, {3.6517749983729763`*^9, 
+   3.651774998688555*^9}, {3.65177503247186*^9, 3.651775101415037*^9}, {
+   3.651775131716795*^9, 3.65177513572331*^9}, {3.651775191112945*^9, 
+   3.651775212616036*^9}, {3.651775252665429*^9, 3.651775268978671*^9}, {
+   3.654870380290489*^9, 3.654870404280604*^9}, {3.654870439975651*^9, 
+   3.6548704598725224`*^9}, {3.65487074282098*^9, 3.6548708913292227`*^9}, {
+   3.656521635400281*^9, 3.656521809211115*^9}, 3.656522293296438*^9, {
+   3.656522550845852*^9, 3.6565226156584387`*^9}, {3.6565227231050997`*^9, 
+   3.656522841506735*^9}, 3.656522905762744*^9, {3.6645702960869164`*^9, 
+   3.664570334992712*^9}, {3.664570377398411*^9, 3.6645704920842648`*^9}, {
+   3.66697302150408*^9, 3.666973072881734*^9}, {3.670157642088723*^9, 
+   3.670157643221278*^9}, {3.670160468491555*^9, 3.670160470481144*^9}, {
+   3.6701639619515543`*^9, 3.670163962953403*^9}, {3.683642681145041*^9, 
+   3.683642705922448*^9}, {3.683642762720504*^9, 3.683642769422647*^9}, {
+   3.68364280891967*^9, 3.683642840881772*^9}, {3.683642871159276*^9, 
+   3.6836428965947227`*^9}, 3.68364292913833*^9, {3.683643011086182*^9, 
+   3.6836430283016987`*^9}, {3.683643075901629*^9, 3.683643112541568*^9}, {
+   3.683643316363656*^9, 3.683643343324786*^9}, {3.683643967130748*^9, 
+   3.6836439945883083`*^9}, {3.68364413331773*^9, 3.683644143052062*^9}, {
+   3.683644190154602*^9, 3.683644204331829*^9}, {3.683644244778036*^9, 
+   3.683644245446081*^9}, {3.683644568803782*^9, 3.6836445925699*^9}, 
+   3.683644801255777*^9, {3.683645304217142*^9, 3.6836454122681*^9}, {
+   3.6836455022746277`*^9, 3.683645529236369*^9}, {3.6836456459862337`*^9, 
+   3.683645659063568*^9}, {3.683645712166552*^9, 3.683645741962278*^9}, {
+   3.68364955934481*^9, 3.683649783389381*^9}, {3.6836498372672663`*^9, 
+   3.6836498567032127`*^9}, {3.683649916469577*^9, 3.683649919866782*^9}, {
+   3.683650776735653*^9, 3.683650817030633*^9}, 3.683650883878126*^9, {
+   3.68365092955202*^9, 3.683650930842558*^9}, {3.683651007746478*^9, 
+   3.6836510181763372`*^9}, {3.683651057114032*^9, 3.683651060624606*^9}, {
+   3.68365109714914*^9, 3.683651136384397*^9}, {3.683651202884152*^9, 
+   3.683651208874167*^9}, {3.683651247231889*^9, 3.683651247542122*^9}, {
+   3.683651310199265*^9, 3.683651361324294*^9}, {3.683651395393703*^9, 
+   3.6836514094094667`*^9}, {3.683651454982061*^9, 3.6836514696126966`*^9}, {
+   3.683651854312336*^9, 3.6836520039857063`*^9}, {3.6836520453365593`*^9, 
+   3.683652279024006*^9}, {3.683652570624*^9, 3.683652706479207*^9}, {
+   3.683652792988549*^9, 3.6836528518741417`*^9}, {3.6836528871574793`*^9, 
+   3.68365291662987*^9}, {3.683652980931542*^9, 3.6836530037878838`*^9}, {
+   3.683653073974471*^9, 3.6836530889201813`*^9}, {3.68365322142629*^9, 
+   3.683653227161978*^9}, {3.683653310332655*^9, 3.6836533418061533`*^9}, {
+   3.6836534041823606`*^9, 3.683653405152878*^9}, {3.6836535120884743`*^9, 
+   3.683653713350222*^9}, {3.683653747763586*^9, 3.6836538697682056`*^9}, {
+   3.683654078749263*^9, 3.683654130961665*^9}, {3.6836541721708612`*^9, 
+   3.6836541733642483`*^9}, {3.68365427955053*^9, 3.683654437133087*^9}, {
+   3.683654486739694*^9, 3.683654508599842*^9}, {3.6836545545676107`*^9, 
+   3.683654559665114*^9}, {3.68365460969493*^9, 3.683654651750616*^9}, {
+   3.68365468352464*^9, 3.683654882068307*^9}, {3.683655699785491*^9, 
+   3.683655700121743*^9}, {3.6836557796640882`*^9, 3.683655780194273*^9}, {
+   3.683655902636149*^9, 3.6836559087814293`*^9}, {3.683656031279221*^9, 
+   3.683656032166834*^9}, 3.683656102267378*^9, {3.6836567135399313`*^9, 
+   3.683656750742241*^9}, {3.6836568894213333`*^9, 3.68365691865744*^9}, {
+   3.6836569658580513`*^9, 3.6836569806969213`*^9}, {3.6836570790072203`*^9, 
+   3.683657138021041*^9}, 3.683657532564726*^9, {3.683657572257888*^9, 
+   3.6836575894266977`*^9}, {3.683657649585053*^9, 3.683657734142045*^9}, {
+   3.683657764269989*^9, 3.683657777242303*^9}, 3.683658033199452*^9, {
+   3.68365807998013*^9, 3.6836581538333397`*^9}, {3.68365824760147*^9, 
+   3.683658333451563*^9}, {3.683658369045186*^9, 3.683658383882069*^9}, {
+   3.6836586482505913`*^9, 3.683658675382897*^9}, {3.6836587945748663`*^9, 
+   3.6836588052290697`*^9}, {3.683658927601503*^9, 3.683659041184708*^9}, {
+   3.683659250823594*^9, 3.6836592826543217`*^9}, {3.68365934886346*^9, 
+   3.683659385437702*^9}, {3.683659427462974*^9, 3.683659436498253*^9}, {
+   3.683659551634368*^9, 3.683659684924225*^9}, {3.683659739949353*^9, 
+   3.683659774061026*^9}, {3.683659809169593*^9, 3.683659836754797*^9}, {
+   3.683659881247877*^9, 3.683659960686454*^9}, {3.683660011129731*^9, 
+   3.6836600294612226`*^9}, {3.683660156715527*^9, 3.683660157612652*^9}, {
+   3.683660333617632*^9, 3.683660394757661*^9}, {3.6836604842196836`*^9, 
+   3.683660550550736*^9}, {3.6836605814063683`*^9, 3.683660585815319*^9}, {
+   3.6836606289957848`*^9, 3.6836606737123013`*^9}, {3.683660808156542*^9, 
+   3.683660813455825*^9}, {3.683664286772505*^9, 3.6836642999096727`*^9}, {
+   3.683664841098119*^9, 3.683664867712843*^9}, {3.683911116321697*^9, 
+   3.683911233181511*^9}, {3.683911287358282*^9, 3.68391129457586*^9}, {
+   3.683911578298875*^9, 3.683911578390808*^9}, {3.684162479241091*^9, 
+   3.684162514732202*^9}, {3.684162546434856*^9, 3.684162547778021*^9}, {
+   3.6841628978063717`*^9, 3.684162907736906*^9}, {3.684163238303124*^9, 
+   3.6841632383486347`*^9}, {3.684163330375883*^9, 3.684163372836912*^9}, {
+   3.6841635280433397`*^9, 3.6841635285263023`*^9}, 3.68416435473491*^9, {
+   3.684171619926115*^9, 3.684171645938734*^9}, {3.6841717560616293`*^9, 
+   3.684171889353672*^9}, {3.684172061767303*^9, 3.684172101342613*^9}, {
+   3.684172242103838*^9, 3.684172242412868*^9}, {3.68417494285861*^9, 
+   3.684174943459049*^9}, {3.684175094078545*^9, 3.6841750959056396`*^9}, {
+   3.68417515889298*^9, 3.684175290010501*^9}, {3.684175326108536*^9, 
+   3.684175327006969*^9}, {3.684175405838167*^9, 3.684175406822177*^9}, {
+   3.684175466757019*^9, 3.684175469464713*^9}, {3.684176226776247*^9, 
+   3.684176347304358*^9}, {3.684176431672859*^9, 3.68417643259241*^9}}],
+
+Cell[BoxData[
+ GraphicsBox[{{}, {{InsetBox[
+      GraphicsBox[{
+        {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+         EdgeForm[{Opacity[0.45499999999999996`], Thickness[Small]}], {}, 
+         {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+          EdgeForm[{Opacity[0.45499999999999996`], Thickness[Small]}], 
+          RectangleBox[{2., 0},
+           RoundingRadius->0], RectangleBox[{3., 0}, {4., 2},
+           RoundingRadius->0], RectangleBox[{4., 0},
+           RoundingRadius->0], RectangleBox[{5., 0}, {6., 3},
+           RoundingRadius->0], RectangleBox[{6., 0}, {7., 13},
+           RoundingRadius->0], RectangleBox[{8., 0}, {9., 4},
+           RoundingRadius->0], RectangleBox[{9., 0},
+           RoundingRadius->0], RectangleBox[{10., 0}, {11., 9},
+           RoundingRadius->0], RectangleBox[{11., 0}, {12., 9},
+           RoundingRadius->0], RectangleBox[{12., 0},
+           RoundingRadius->0], RectangleBox[{13., 0},
+           RoundingRadius->0], RectangleBox[{14., 0}, {15., 2},
+           RoundingRadius->0], RectangleBox[{15., 0},
+           RoundingRadius->0], RectangleBox[{16., 0},
+           RoundingRadius->0], RectangleBox[{17., 0}, {18., 6},
+           RoundingRadius->0], RectangleBox[{18., 0}, {19., 8},
+           RoundingRadius->0], RectangleBox[{19., 0}, {20., 2},
+           RoundingRadius->0], RectangleBox[{20., 0}, {21., 6},
+           RoundingRadius->0], RectangleBox[{22., 0}, {23., 2},
+           RoundingRadius->0], RectangleBox[{23., 0}, {24., 2},
+           RoundingRadius->0], RectangleBox[{24., 0}, {25., 3},
+           RoundingRadius->0], RectangleBox[{25., 0}, {26., 11},
+           RoundingRadius->0], RectangleBox[{26., 0}, {27., 4},
+           RoundingRadius->0], RectangleBox[{27., 0}, {28., 12},
+           RoundingRadius->0], RectangleBox[{28., 0}, {29., 4},
+           RoundingRadius->0], RectangleBox[{29., 0}, {30., 5},
+           RoundingRadius->0], RectangleBox[{30., 0}, {31., 56},
+           
+           RoundingRadius->
+            0]}, {}, {}}, {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}}},
+       AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+       Axes->{True, True},
+       AxesLabel->{None, None},
+       AxesOrigin->{0, 0},
+       FrameLabel->{{None, None}, {None, None}},
+       FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+       GridLines->{None, None},
+       GridLinesStyle->Directive[
+         GrayLevel[0.5, 0.4]],
+       PlotLabel->FormBox["\"Problem 1; mean = 21.32\"", TraditionalForm],
+       PlotRange->{{0., 33.}, {All, 102}},
+       PlotRangePadding->{{
+          Scaled[0.02], 
+          Scaled[0.02]}, {
+          Scaled[0.02], 
+          Scaled[0.05]}},
+       Ticks->{Automatic, Automatic}], {192., -118.66252583997979`}, 
+      ImageScaled[{0.5, 0.5}], {360., 222.4922359499621}], InsetBox[
+      GraphicsBox[{
+        {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+         EdgeForm[{Opacity[0.45499999999999996`], Thickness[Small]}], {}, 
+         {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+          EdgeForm[{Opacity[0.45499999999999996`], Thickness[Small]}], 
+          RectangleBox[{17., 0},
+           RoundingRadius->0], RectangleBox[{18., 0}, {19., 2},
+           RoundingRadius->0], RectangleBox[{19., 0},
+           RoundingRadius->0], RectangleBox[{20., 0},
+           RoundingRadius->0], RectangleBox[{21., 0},
+           RoundingRadius->0], RectangleBox[{22., 0}, {23., 2},
+           RoundingRadius->0], RectangleBox[{23., 0}, {24., 2},
+           RoundingRadius->0], RectangleBox[{25., 0}, {26., 6},
+           RoundingRadius->0], RectangleBox[{26., 0}, {27., 4},
+           RoundingRadius->0], RectangleBox[{27., 0}, {28., 4},
+           RoundingRadius->0], RectangleBox[{28., 0}, {29., 15},
+           RoundingRadius->0], RectangleBox[{29., 0}, {30., 2},
+           RoundingRadius->0], RectangleBox[{30., 0}, {31., 6},
+           RoundingRadius->0], RectangleBox[{31., 0}, {32., 21},
+           RoundingRadius->0], RectangleBox[{32., 0}, {33., 6},
+           
+           RoundingRadius->
+            0]}, {}, {}}, {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}}},
+       AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+       Axes->{True, True},
+       AxesLabel->{None, None},
+       AxesOrigin->{0, 0},
+       FrameLabel->{{None, None}, {None, None}},
+       FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+       GridLines->{None, None},
+       GridLinesStyle->Directive[
+         GrayLevel[0.5, 0.4]],
+       PlotLabel->FormBox["\"Problem 2; mean = 31.78\"", TraditionalForm],
+       PlotRange->{{0., 33.}, {All, 102}},
+       PlotRangePadding->{{
+          Scaled[0.02], 
+          Scaled[0.02]}, {
+          Scaled[0.02], 
+          Scaled[0.05]}},
+       Ticks->{Automatic, Automatic}], {576., -118.66252583997979`}, 
+      ImageScaled[{0.5, 0.5}], {360., 222.4922359499621}]}, {InsetBox[
+      GraphicsBox[{
+        {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+         EdgeForm[{Opacity[0.44799999999999995`], Thickness[Small]}], {}, 
+         {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+          EdgeForm[{Opacity[0.44799999999999995`], Thickness[Small]}], 
+          RectangleBox[{4., 0},
+           RoundingRadius->0], RectangleBox[{5., 0}, {6., 4},
+           RoundingRadius->0], RectangleBox[{7., 0}, {8., 2},
+           RoundingRadius->0], RectangleBox[{8., 0}, {9., 5},
+           RoundingRadius->0], RectangleBox[{10., 0}, {11., 4},
+           RoundingRadius->0], RectangleBox[{13., 0}, {14., 5},
+           RoundingRadius->0], RectangleBox[{15., 0}, {16., 25},
+           RoundingRadius->0], RectangleBox[{17., 0},
+           RoundingRadius->0], RectangleBox[{18., 0}, {19., 8},
+           RoundingRadius->0], RectangleBox[{20., 0}, {21., 2},
+           RoundingRadius->0], RectangleBox[{23., 0}, {24., 3},
+           RoundingRadius->0], RectangleBox[{25., 0}, {26., 2},
+           RoundingRadius->0], RectangleBox[{27., 0},
+           RoundingRadius->0], RectangleBox[{28., 0}, {29., 5},
+           RoundingRadius->0], RectangleBox[{30., 0}, {31., 102},
+           
+           RoundingRadius->
+            0]}, {}, {}}, {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}}},
+       AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+       Axes->{True, True},
+       AxesLabel->{None, None},
+       AxesOrigin->{0, 0},
+       FrameLabel->{{None, None}, {None, None}},
+       FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+       GridLines->{None, None},
+       GridLinesStyle->Directive[
+         GrayLevel[0.5, 0.4]],
+       PlotLabel->FormBox["\"Problem 3; mean = 24.15\"", TraditionalForm],
+       PlotRange->{{0., 34.}, {All, 102}},
+       PlotRangePadding->{{
+          Scaled[0.02], 
+          Scaled[0.02]}, {
+          Scaled[0.02], 
+          Scaled[0.05]}},
+       Ticks->{Automatic, Automatic}], {192., -355.98757751993935`}, 
+      ImageScaled[{0.5, 0.5}], {360., 222.4922359499621}], InsetBox[
+      GraphicsBox[{
+        {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+         EdgeForm[{Opacity[0.5459999999999999], Thickness[Small]}], {}, 
+         {RGBColor[0.987148, 0.8073604000000001, 0.49470040000000004`], 
+          EdgeForm[{Opacity[0.5459999999999999], Thickness[Small]}], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{25., 0}, {30., 2}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{102.2371988100997, 
+               116.72846872549911`}, {-18.490485564248615`, \
+-14.70544278289799}}],
+             StatusArea[#, 2]& ,
+             TagBoxNote->"2"],
+            StyleBox["2", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[2, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{30., 0}, {35., 1}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{116.22846872549911`, 
+               130.71973864089853`}, {-16.847964173573303`, \
+-14.70544278289799}}],
+             StatusArea[#, 1]& ,
+             TagBoxNote->"1"],
+            StyleBox["1", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[1, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{35., 0}, {40., 2}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{130.21973864089853`, 
+               144.711008556298}, {-18.490485564248615`, -14.70544278289799}}],
+             StatusArea[#, 2]& ,
+             TagBoxNote->"2"],
+            StyleBox["2", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[2, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{45., 0}, {50., 5}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{158.2022784716974, 
+               172.69354838709683`}, {-23.418049736274583`, \
+-14.70544278289799}}],
+             StatusArea[#, 5]& ,
+             TagBoxNote->"5"],
+            StyleBox["5", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[5, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{50., 0}, {55., 4}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{172.19354838709683`, 
+               186.6848183024963}, {-21.77552834559927, -14.70544278289799}}],
+             
+             StatusArea[#, 4]& ,
+             TagBoxNote->"4"],
+            StyleBox["4", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[4, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{55., 0}, {60., 7}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{186.1848183024963, 
+               200.67608821789565`}, {-26.703092517625237`, \
+-14.70544278289799}}],
+             StatusArea[#, 7]& ,
+             TagBoxNote->"7"],
+            StyleBox["7", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[7, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{60., 0}, {65., 16}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{200.17608821789565`, 
+               214.66735813329512`}, {-41.48578503370308, \
+-14.70544278289799}}],
+             StatusArea[#, 16]& ,
+             TagBoxNote->"16"],
+            StyleBox["16", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[16, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{65., 0}, {70., 10}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{214.16735813329512`, 
+               228.6586280486946}, {-31.630656689651175`, \
+-14.70544278289799}}],
+             StatusArea[#, 10]& ,
+             TagBoxNote->"10"],
+            StyleBox["10", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[10, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{70., 0}, {75., 17}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{228.1586280486946, 
+               
+               242.64989796409395`}, {-43.12830642437842, \
+-14.70544278289799}}],
+             StatusArea[#, 17]& ,
+             TagBoxNote->"17"],
+            StyleBox["17", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[17, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{75., 0}, {80., 21}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{242.14989796409395`, 
+               256.6411678794934}, {-49.698391987079674`, \
+-14.70544278289799}}],
+             StatusArea[#, 21]& ,
+             TagBoxNote->"21"],
+            StyleBox["21", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[21, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{80., 0}, {85., 15}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{256.1411678794934, 
+               270.6324377948928}, {-39.84326364302777, -14.70544278289799}}],
+             
+             StatusArea[#, 15]& ,
+             TagBoxNote->"15"],
+            StyleBox["15", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[15, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{85., 0}, {90., 24}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{270.1324377948928, 
+               284.62370771029225`}, {-54.62595615910564, \
+-14.70544278289799}}],
+             StatusArea[#, 24]& ,
+             TagBoxNote->"24"],
+            StyleBox["24", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[24, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{90., 0}, {95., 30}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{284.12370771029225`, 
+               298.6149776256917}, {-64.48108450315755, -14.70544278289799}}],
+             
+             StatusArea[#, 30]& ,
+             TagBoxNote->"30"],
+            StyleBox["30", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[30, {}], "Tooltip"]& ], 
+          TagBox[
+           TooltipBox[
+            TagBox[
+             DynamicBox[{
+               FEPrivate`If[
+                CurrentValue["MouseOver"], 
+                EdgeForm[{
+                  GrayLevel[0.5], 
+                  AbsoluteThickness[1.5], 
+                  Opacity[0.66]}], {}, {}], 
+               RectangleBox[{95., 0}, {100., 15}, "RoundingRadius" -> 0]},
+              
+              ImageSizeCache->{{298.1149776256917, 
+               312.6062475410912}, {-39.84326364302777, -14.70544278289799}}],
+             
+             StatusArea[#, 15]& ,
+             TagBoxNote->"15"],
+            StyleBox["15", {}, StripOnInput -> False]],
+           Annotation[#, 
+            Style[15, {}], 
+            "Tooltip"]& ]}, {}, {}}, {{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, \
+{}, {}, {}, {}}},
+       AspectRatio->NCache[GoldenRatio^(-1), 0.6180339887498948],
+       Axes->{True, True},
+       AxesLabel->{None, None},
+       AxesOrigin->{0, 0},
+       FrameLabel->{{None, None}, {None, None}},
+       FrameTicks->{{Automatic, Automatic}, {Automatic, Automatic}},
+       GridLines->{None, None},
+       GridLinesStyle->Directive[
+         GrayLevel[0.5, 0.4]],
+       PlotLabel->FormBox["\"Total; mean = 77.25\"", TraditionalForm],
+       PlotRange->{{0., 100.}, {All, 102}},
+       PlotRangePadding->{{
+          Scaled[0.02], 
+          Scaled[0.02]}, {
+          Scaled[0.02], 
+          Scaled[0.05]}},
+       Ticks->{Automatic, Automatic}], {576., -355.98757751993935`}, 
+      ImageScaled[{0.5, 0.5}], {360., 222.4922359499621}]}}, {}},
+  ContentSelectable->True,
+  ImageSize->Full,
+  PlotRangePadding->{6, 5}]], "Print",
+ CellChangeTimes->{
+  3.683911301887393*^9, 3.684163347245295*^9, 3.684163415919025*^9, 
+   3.684174883459528*^9, 3.684174946338922*^9, 3.684175097509573*^9, 
+   3.684175268882759*^9, {3.6841754018211737`*^9, 3.6841754081688213`*^9}, 
+   3.684175470523356*^9, 3.684175548164288*^9, 3.684176384992964*^9, 
+   3.684176433397352*^9}]
+}, Open  ]]
+},
+WindowSize->{808, 909},
+WindowMargins->{{157, Automatic}, {Automatic, 39}},
+FrontEndVersion->"10.3 for Linux x86 (64-bit) (December 10, 2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 34055, 824, 2893, "Input"],
+Cell[34638, 848, 18875, 453, 435, "Print"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
